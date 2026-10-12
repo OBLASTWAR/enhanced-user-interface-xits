@@ -215,7 +215,9 @@ local function UpdatePlotFlags( plot )
 		for i = 0, GetPlotNumUnits( plot ) - 1 do
 			unit = GetPlotUnit( plot, i )
 			flag = g_UnitFlags[ unit:GetOwner() ][ unit:GetID() ]
-			if flag and flag.m_Plot then
+			-- Units the active team can't see (e.g. submarines) take no place in the stack,
+			-- otherwise the gap they leave gives them away.
+			if flag and flag.m_Plot and not unit:IsInvisible( g_activeTeamID, true ) then
 				if unit:IsCargo() then
 				elseif flag.m_IsAirCraft then
 					table_insert( aflags, unit )
@@ -257,7 +259,7 @@ local function UpdatePlotFlags( plot )
 			unit = GetPlotUnit( plot, i )
 			flag = g_UnitFlags[ unit:GetOwner() ][ unit:GetID() ]
 			-- DebugFlag( flag,"candidate is aircraft?", flag and flag.m_IsAirCraft ) end
-			if flag and flag.m_Plot then
+			if flag and flag.m_Plot and not unit:IsInvisible( g_activeTeamID, true ) then
 				if unit:IsCargo() then
 				elseif flag.m_IsAirCraft then
 					table_insert( aflags, unit )
