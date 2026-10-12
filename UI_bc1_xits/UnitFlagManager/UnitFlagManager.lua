@@ -839,10 +839,10 @@ function( playerID, unitID, isDimmed )
 	-- DebugUnit( playerID, unitID, "UnitShouldDimFlag, isDimmed=", isDimmed ) end
 	local flag = g_UnitFlags[ playerID ][ unitID ]
 	if flag then
-	local active_team = Game.GetActiveTeam();
-	local team = Players[playerID]:GetTeam();
-	local isActiveTeam = (active_team == team);
-		flag.FlagShadow:SetAlpha( (isDimmed and isActiveTeam) and 0.5 or 1.0 )
+		-- Only the active team's flags dim: dimming other players' flags shows
+		-- which of their units are out of moves.
+		local player = Players[ playerID ]
+		flag.FlagShadow:SetAlpha( isDimmed and player and player:GetTeam() == g_activeTeamID and 0.5 or 1.0 )
 	else
 		-- DebugUnit( playerID, unitID, "flag not found for UnitShouldDimFlag" ) end
 	end
