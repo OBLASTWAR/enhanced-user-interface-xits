@@ -395,6 +395,22 @@ local function GetFlagUnit( flag )
 end
 
 --==========================================================
+-- Tooltip for a carrier's cargo count: the names of the units aboard.
+local function SetCargoTip( carrierFlag, transportUnit )
+	local plot = transportUnit:GetPlot()
+	local names = {}
+	if plot then
+		for i = 0, GetPlotNumUnits( plot ) - 1 do
+			local cargoUnit = GetPlotUnit( plot, i )
+			if cargoUnit:GetTransportUnit() == transportUnit then
+				table_insert( names, Locale.ConvertTextKey( cargoUnit:GetNameKey() ) )
+			end
+		end
+	end
+	carrierFlag.Cargo:SetToolTipString( table.concat( names, "[NEWLINE]" ) )
+end
+
+--==========================================================
 local function FinishMove( flag )
 	-- DebugFlag( flag, "FinishMove" ) end
 	-- Have we changed carrier ?
@@ -411,6 +427,7 @@ local function FinishMove( flag )
 				local cargo = oldCarrierUnit:GetCargo()
 				oldCarrier.CargoBG:SetHide( cargo < 1 )
 				oldCarrier.Cargo:SetText( cargo )
+				SetCargoTip( oldCarrier, oldCarrierUnit )
 			end
 		end
 		flag.m_TransportUnit = transportUnit
@@ -422,6 +439,7 @@ local function FinishMove( flag )
 				local cargo = transportUnit:GetCargo()
 				newCarrier.CargoBG:SetHide( cargo < 1 )
 				newCarrier.Cargo:SetText( cargo )
+				SetCargoTip( newCarrier, transportUnit )
 			end
 		end
 	end
@@ -602,6 +620,7 @@ local function CreateNewFlag( playerID, unitID, isSelected, isHiddenByFog, isInv
 		local cargo = unit:GetCargo()
 		flag.CargoBG:SetHide( cargo < 1 )
 		flag.Cargo:SetText( cargo )
+		SetCargoTip( flag, unit )
 
 		---------------------------------------------------------
 		-- update all other info
