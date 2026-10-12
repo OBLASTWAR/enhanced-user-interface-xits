@@ -383,21 +383,37 @@ local function SetFlagSelected( flag, isSelected )
 end--SetFlagSelected
 
 --==========================================================
+-- Units are looked up by ID instead of keeping the unit object on the
+-- flag. A unit can be deleted while its flag still exists (events arrive
+-- late, e.g. during MP turn processing), and calling into a deleted unit's
+-- object crashes the game. Nil when the unit is gone.
+local function GetFlagUnit( flag )
+	local player = Players[ flag.m_PlayerID ]
+	return player and player:GetUnitByID( flag.m_UnitID )
+end
+
+--==========================================================
 local function FinishMove( flag )
 	-- DebugFlag( flag, "FinishMove" ) end
 	-- Have we changed carrier ?
-	local unit = flag.m_Unit
+	local unit = GetFlagUnit( flag )
+	if not unit then
+		return
+	end
 	local transportUnit = unit:GetTransportUnit()
 	if flag.m_TransportUnit ~= transportUnit then
 		if flag.m_TransportUnit then
-			local oldCarrier = g_UnitFlags[ flag.m_TransportUnit:GetOwner() ][ flag.m_TransportUnit:GetID() ]
-			if oldCarrier then
-				local cargo = oldCarrier.m_Unit:GetCargo()
+			local oldCarrier = g_UnitFlags[ flag.m_TransportOwner ][ flag.m_TransportID ]
+			local oldCarrierUnit = oldCarrier and GetFlagUnit( oldCarrier )
+			if oldCarrierUnit then
+				local cargo = oldCarrierUnit:GetCargo()
 				oldCarrier.CargoBG:SetHide( cargo < 1 )
 				oldCarrier.Cargo:SetText( cargo )
 			end
 		end
 		flag.m_TransportUnit = transportUnit
+		flag.m_TransportOwner = transportUnit and transportUnit:GetOwner()
+		flag.m_TransportID = transportUnit and transportUnit:GetID()
 		if transportUnit then
 			local newCarrier = g_UnitFlags[ transportUnit:GetOwner() ][ transportUnit:GetID() ]
 			if newCarrier then
@@ -427,7 +443,10 @@ end
 local function UpdateFlagType( flag )
 	-- DebugFlag( flag, "UpdateFlagType" ) end
 
-	local unit = flag.m_Unit
+	local unit = GetFlagUnit( flag )
+	if not unit then
+		return
+	end
 	local textureName, maskName
 
 	if unit:IsEmbarked() then
@@ -558,7 +577,6 @@ local function CreateNewFlag( playerID, unitID, isSelected, isHiddenByFog, isInv
 		flag.m_MaxHitPoints = unit:GetMaxHitPoints()
 		flag.m_Player = player
 		flag.m_PlayerID = playerID
-		flag.m_Unit = unit
 		flag.m_UnitID = unitID
 
 		---------------------------------------------------------
@@ -650,7 +668,8 @@ function( playerID, unitID, unitPosition )
 			if UnitMoving( playerID, unitID ) then
 				flag.m_Plot = nil
 			end
-			local targetPlot = flag.m_Unit:GetPlot()
+			local unit = GetFlagUnit( flag )
+			local targetPlot = unit and unit:GetPlot()
 			if targetPlot ~= plot then
 				UpdatePlotFlags( plot )
 				-- DebugFlag( flag, "starting to move: setting flag offset to", 0, 0 ) end
