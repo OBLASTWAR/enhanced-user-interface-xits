@@ -81,7 +81,7 @@ local g_activeTeam = Teams[ g_activeTeamID ]
 
 -- Lobby option: other players' flags also dim when their units are out of moves.
 -- Off unless a mod defines GAMEOPTION_DIM_ENEMY_UNIT_FLAGS and the host turns it on.
-local g_dimEnemyFlags = PreGame.GetGameOption( "GAMEOPTION_DIM_ENEMY_UNIT_FLAGS" ) > 0
+local g_dimEnemyFlags = ( PreGame.GetGameOption( "GAMEOPTION_DIM_ENEMY_UNIT_FLAGS" ) or 0 ) > 0
 
 local g_colorGreen = Color( 0, 1, 0, 1 )
 local g_colorYellow = Color( 1, 1, 0, 1 )
