@@ -79,9 +79,20 @@ local g_activeTeamID = Game.GetActiveTeam()
 local g_activePlayer = Players[ g_activePlayerID ]
 local g_activeTeam = Teams[ g_activeTeamID ]
 
--- Lobby option: other players' flags also dim when their units are out of moves.
--- Off unless a mod defines GAMEOPTION_DIM_ENEMY_UNIT_FLAGS and the host turns it on.
-local g_dimEnemyFlags = ( PreGame.GetGameOption( "GAMEOPTION_DIM_ENEMY_UNIT_FLAGS" ) or 0 ) > 0
+-- Other players' flags also dim when their units are out of moves, as in the
+-- original EUI, unless a mod decides otherwise: a mod that defines the
+-- GAMEOPTION_DIM_ENEMY_UNIT_FLAGS lobby option (KEK Mod) leaves it to the host;
+-- Lekmod, the tournament mod pack and older KEK Mod versions never dim them.
+local g_dimEnemyFlags
+if GameInfo.GameOptions.GAMEOPTION_DIM_ENEMY_UNIT_FLAGS then
+	g_dimEnemyFlags = ( PreGame.GetGameOption( "GAMEOPTION_DIM_ENEMY_UNIT_FLAGS" ) or 0 ) > 0
+else
+	local function IsModActive( guid )
+		return ContentManager and ContentManager.IsActive( guid, ContentType.GAMEPLAY )
+	end
+	g_dimEnemyFlags = not ( IsModActive( "b5932ae4-0f4f-498f-9333-e2d31b20e095" ) -- KEK Mod, tournament mod pack, Lekmod before v33
+		or IsModActive( "4249caef-aeb8-45cc-9ccd-ffd722c79097" ) ) -- Lekmod v33+
+end
 
 local g_colorGreen = Color( 0, 1, 0, 1 )
 local g_colorYellow = Color( 1, 1, 0, 1 )
